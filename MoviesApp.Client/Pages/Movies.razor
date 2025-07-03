@@ -1,0 +1,122 @@
+﻿@page "/movies"
+@using MoviesApp.Client.Services
+@using MoviesApp.Shared.DTOs
+@inject MovieService MovieService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Movies</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Movies Database</h1>
+                <button class="btn btn-primary" @onclick="NavigateToAdd">
+                    <i class="fas fa-plus"></i> Add New Movie
+                </button>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (movies.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Title</th>
+                                <th>Genre</th>
+                                <th>Release Date</th>
+                                <th>Box Office Sales</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var movie in movies)
+                            {
+                                <tr>
+                                    <td>@movie.Title</td>
+                                    <td>@movie.Genre</td>
+                                    <td>@movie.ReleaseDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@(movie.BoxOfficeSales?.ToString("C") ?? "N/A")</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary"
+                                                    @onclick="() => NavigateToEdit(movie.Id)">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                    @onclick="() => DeleteMovie(movie.Id)">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <h4>No movies found</h4>
+                    <p>Get started by adding your first movie to the database.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<MovieDto> movies = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMovies();
+    }
+
+    private async Task LoadMovies()
+    {
+        isLoading = true;
+        movies = await MovieService.GetMoviesAsync();
+        isLoading = false;
+    }
+
+    private void NavigateToAdd()
+    {
+        Navigation.NavigateTo("/movies/add");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        Navigation.NavigateTo($"/movies/edit/{id}");
+    }
+
+    private async Task DeleteMovie(int id)
+    {
+        var movie = movies.FirstOrDefault(m => m.Id == id);
+        if (movie != null)
+        {
+            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+                $"Are you sure you want to delete '{movie.Title}'?");
+
+            if (confirmed)
+            {
+                var success = await MovieService.DeleteMovieAsync(id);
+                if (success)
+                {
+                    await LoadMovies();
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,146 @@
+﻿@page "/movies/edit/{Id:int}"
+@using MoviesApp.Client.Services
+@using MoviesApp.Shared.DTOs
+@using MoviesApp.Shared.Models
+@inject MovieService MovieService
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Movie</PageTitle>
+
+@if (isLoading)
+{
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (movie != null)
+{
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">Edit Movie</h3>
+                    </div>
+                    <div class="card-body">
+                        <EditForm Model="@movie" OnValidSubmit="@HandleValidSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="alert alert-danger" />
+
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                <InputText id="title" class="form-control" @bind-Value="movie.Title" />
+                                <ValidationMessage For="@(() => movie.Title)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="genre" class="form-label">Genre</label>
+                                <InputText id="genre" class="form-control" @bind-Value="movie.Genre" />
+                                <ValidationMessage For="@(() => movie.Genre)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="releaseDate" class="form-label">Release Date</label>
+                                <InputDate id="releaseDate" class="form-control" @bind-Value="movie.ReleaseDate" />
+                                <ValidationMessage For="@(() => movie.ReleaseDate)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="boxOffice" class="form-label">Box Office Sales (Optional)</label>
+                                <InputNumber id="boxOffice" class="form-control" @bind-Value="movie.BoxOfficeSales" />
+                                <ValidationMessage For="@(() => movie.BoxOfficeSales)" />
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                    }
+                                    Update Movie
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        <h4>Movie Not Found</h4>
+        <p>The requested movie could not be found.</p>
+        <button class="btn btn-primary" @onclick="@(() => Navigation.NavigateTo("/movies"))">
+            Back to Movies
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Movie? movie;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMovie();
+    }
+
+    private async Task LoadMovie()
+    {
+        isLoading = true;
+        var movieDto = await MovieService.GetMovieAsync(Id);
+
+        if (movieDto != null)
+        {
+            movie = new Movie
+            {
+                Id = movieDto.Id,
+                Title = movieDto.Title,
+                Genre = movieDto.Genre,
+                ReleaseDate = movieDto.ReleaseDate,
+                BoxOfficeSales = movieDto.BoxOfficeSales
+            };
+        }
+
+        isLoading = false;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (movie == null) return;
+
+        isSubmitting = true;
+
+        var updateDto = new UpdateMovieDto
+        {
+            Title = movie.Title,
+            Genre = movie.Genre,
+            ReleaseDate = movie.ReleaseDate,
+            BoxOfficeSales = movie.BoxOfficeSales
+        };
+
+        var success = await MovieService.UpdateMovieAsync(Id, updateDto);
+
+        if (success)
+        {
+            Navigation.NavigateTo("/movies");
+        }
+
+        isSubmitting = false;
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/movies");
+    }
+}
