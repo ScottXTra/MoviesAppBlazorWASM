@@ -15,11 +15,11 @@ builder.Services.AddDbContext<MoviesDbContext>(options =>
 // Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowBlazorClient", builder =>
+    options.AddPolicy("AllowBlazorClient", policy =>
     {
-        builder.WithOrigins("https://localhost:7001", "http://localhost:5000")
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policy.WithOrigins("https://localhost:7074") 
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
