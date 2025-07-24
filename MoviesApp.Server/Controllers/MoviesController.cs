@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using MoviesApp.Server.Data;
+using MoviesApp.Server.Hubs;
 using MoviesApp.Shared.DTOs;
 using MoviesApp.Shared.Models;
 
@@ -11,10 +13,12 @@ namespace MoviesApp.Server.Controllers
     public class MoviesController : ControllerBase
     {
         private readonly MoviesDbContext _context;
+        private readonly IHubContext<MovieHub> _hub;
 
-        public MoviesController(MoviesDbContext context)
+        public MoviesController(MoviesDbContext context, IHubContext<MovieHub> hub)
         {
             _context = context;
+            _hub = hub;
         }
 
         [HttpGet]
@@ -78,7 +82,7 @@ namespace MoviesApp.Server.Controllers
                 ReleaseDate = movie.ReleaseDate,
                 BoxOfficeSales = movie.BoxOfficeSales
             };
-
+            await _hub.Clients.All.SendAsync("MovieListUpdated");
             return CreatedAtAction(nameof(GetMovie), new { id = movie.Id }, movieDto);
         }
 
@@ -110,6 +114,7 @@ namespace MoviesApp.Server.Controllers
                 throw;
             }
 
+            await _hub.Clients.All.SendAsync("MovieListUpdated");
             return NoContent();
         }
 
@@ -125,7 +130,7 @@ namespace MoviesApp.Server.Controllers
 
             _context.Movies.Remove(movie);
             await _context.SaveChangesAsync();
-
+            await _hub.Clients.All.SendAsync("MovieListUpdated");
             return NoContent();
         }
 
