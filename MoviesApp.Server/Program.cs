@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using MoviesApp.Server.Data;
-
+using MoviesApp.Server.Hubs;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 // Add Entity Framework
 builder.Services.AddDbContext<MoviesDbContext>(options =>
@@ -19,7 +20,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("https://localhost:7074") 
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -32,9 +34,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
 app.UseCors("AllowBlazorClient");
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<MovieHub>("/moviehub");
+
 
 app.Run();

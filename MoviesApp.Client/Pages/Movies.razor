@@ -4,6 +4,7 @@
 @inject MovieService MovieService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@using Microsoft.AspNetCore.SignalR.Client
 
 <PageTitle>Movies</PageTitle>
 
@@ -78,11 +79,26 @@
 @code {
     private List<MovieDto> movies = new();
     private bool isLoading = true;
+    private HubConnection? _hubConnection;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadMovies();
+
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl("https://localhost:7003/moviehub")
+            .WithAutomaticReconnect()
+            .Build();
+
+        _hubConnection.On("MovieListUpdated", async () =>
+        {
+            await LoadMovies(); // Reload data on notification
+            StateHasChanged();
+        });
+
+        await _hubConnection.StartAsync();
     }
+
 
     private async Task LoadMovies()
     {
@@ -119,4 +135,10 @@
             }
         }
     }
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+            await _hubConnection.DisposeAsync();
+    }
+
 }
