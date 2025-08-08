@@ -90,11 +90,33 @@
             .WithAutomaticReconnect()
             .Build();
 
-        _hubConnection.On("MovieListUpdated", async () =>
+        
+        _hubConnection.On<MovieDto>("MovieUpdated", (updatedMovie) =>
         {
-            await LoadMovies(); // Reload data on notification
+            var index = movies.FindIndex(m => m.Id == updatedMovie.Id);
+                if (index != -1)
+                {
+                    movies[index] = updatedMovie;
+                }
             StateHasChanged();
         });
+        _hubConnection.On<MovieDto>("MovieCreated", (newMovie) =>
+        {
+        movies.Add(newMovie);
+        StateHasChanged();
+        });
+
+        _hubConnection.On<int>("MovieDeleted", (deletedId) =>
+        {
+            var movie = movies.FirstOrDefault(m => m.Id == deletedId);
+            if (movie != null)
+            {
+                movies.Remove(movie);
+                StateHasChanged();
+            }
+        });
+
+
 
         await _hubConnection.StartAsync();
     }
@@ -128,10 +150,6 @@
             if (confirmed)
             {
                 var success = await MovieService.DeleteMovieAsync(id);
-                if (success)
-                {
-                    await LoadMovies();
-                }
             }
         }
     }

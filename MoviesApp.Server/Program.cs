@@ -18,13 +18,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient", policy =>
     {
-        policy.WithOrigins("https://localhost:7074") 
+        policy.WithOrigins("https://localhost:7074", "http://localhost:58231", "http://localhost:5173") 
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
     });
 });
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

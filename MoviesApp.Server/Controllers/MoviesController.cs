@@ -82,10 +82,17 @@ namespace MoviesApp.Server.Controllers
                 ReleaseDate = movie.ReleaseDate,
                 BoxOfficeSales = movie.BoxOfficeSales
             };
-            await _hub.Clients.All.SendAsync("MovieListUpdated");
+            await _hub.Clients.All.SendAsync("MovieCreated", new MovieDto
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                Genre = movie.Genre,
+                ReleaseDate = movie.ReleaseDate,
+                BoxOfficeSales = movie.BoxOfficeSales
+            });
+
             return CreatedAtAction(nameof(GetMovie), new { id = movie.Id }, movieDto);
         }
-
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateMovie(int id, UpdateMovieDto updateMovieDto)
         {
@@ -114,7 +121,17 @@ namespace MoviesApp.Server.Controllers
                 throw;
             }
 
-            await _hub.Clients.All.SendAsync("MovieListUpdated");
+            var movieDto = new MovieDto
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                Genre = movie.Genre,
+                ReleaseDate = movie.ReleaseDate,
+                BoxOfficeSales = movie.BoxOfficeSales
+            };
+
+            await _hub.Clients.All.SendAsync("MovieUpdated", movieDto);
+
             return NoContent();
         }
 
@@ -130,7 +147,7 @@ namespace MoviesApp.Server.Controllers
 
             _context.Movies.Remove(movie);
             await _context.SaveChangesAsync();
-            await _hub.Clients.All.SendAsync("MovieListUpdated");
+            await _hub.Clients.All.SendAsync("MovieDeleted", id);
             return NoContent();
         }
 
