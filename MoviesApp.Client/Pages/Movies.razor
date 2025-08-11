@@ -85,12 +85,13 @@
     {
         await LoadMovies();
 
+        //Hub Connection to the Server
         _hubConnection = new HubConnectionBuilder()
             .WithUrl("https://localhost:7003/moviehub")
             .WithAutomaticReconnect()
             .Build();
 
-        
+        //SignalR Topic that the movies has been updated, method contains the updated MovieDTO
         _hubConnection.On<MovieDto>("MovieUpdated", (updatedMovie) =>
         {
             var index = movies.FindIndex(m => m.Id == updatedMovie.Id);
@@ -100,12 +101,15 @@
                 }
             StateHasChanged();
         });
+
+        //SignalR Topic that the movies has been created, method contains the new MovieDTO
         _hubConnection.On<MovieDto>("MovieCreated", (newMovie) =>
         {
-        movies.Add(newMovie);
-        StateHasChanged();
+            movies.Add(newMovie);
+            StateHasChanged();
         });
 
+        //SignalR Topic for deleted movies and contains the ID
         _hubConnection.On<int>("MovieDeleted", (deletedId) =>
         {
             var movie = movies.FirstOrDefault(m => m.Id == deletedId);
@@ -149,7 +153,7 @@
 
             if (confirmed)
             {
-                var success = await MovieService.DeleteMovieAsync(id);
+                await MovieService.DeleteMovieAsync(id);
             }
         }
     }
