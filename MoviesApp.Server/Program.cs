@@ -39,6 +39,7 @@ app.UseCors("AllowBlazorClient");
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<MovieHub>("/moviehub");
+app.MapHub<MissionHub>("/missionhub");
 
 
 app.Run();

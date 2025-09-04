@@ -1,0 +1,95 @@
+@page "/missions/add"
+@using MoviesApp.Client.Services
+@using MoviesApp.Shared.DTOs
+@using MoviesApp.Shared.Models
+@inject MissionService MissionService
+@inject NavigationManager Navigation
+
+<PageTitle>Add Mission</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Add New Mission</h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@mission" OnValidSubmit="@HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-danger" />
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <InputText id="name" class="form-control" @bind-Value="mission.Name" />
+                            <ValidationMessage For="@(() => mission.Name)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="destination" class="form-label">Destination</label>
+                            <InputText id="destination" class="form-control" @bind-Value="mission.Destination" />
+                            <ValidationMessage For="@(() => mission.Destination)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="launchDate" class="form-label">Launch Date</label>
+                            <InputDate id="launchDate" class="form-control" @bind-Value="mission.LaunchDate" />
+                            <ValidationMessage For="@(() => mission.LaunchDate)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status (Optional)</label>
+                            <InputText id="status" class="form-control" @bind-Value="mission.Status" />
+                            <ValidationMessage For="@(() => mission.Status)" />
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Add Mission
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Mission mission = new();
+    private bool isSubmitting = false;
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+
+        var createDto = new CreateMissionDto
+        {
+            Name = mission.Name,
+            Destination = mission.Destination,
+            LaunchDate = mission.LaunchDate,
+            Status = mission.Status
+        };
+
+        var success = await MissionService.CreateMissionAsync(createDto);
+
+        if (success)
+        {
+            Navigation.NavigateTo("/missions");
+        }
+
+        isSubmitting = false;
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/missions");
+    }
+}

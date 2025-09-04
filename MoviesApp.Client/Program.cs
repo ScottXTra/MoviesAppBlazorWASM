@@ -14,5 +14,6 @@ builder.Services.AddScoped(sp => new HttpClient
 });
 
 builder.Services.AddScoped<MovieService>();
+builder.Services.AddScoped<MissionService>();
 
 await builder.Build().RunAsync();

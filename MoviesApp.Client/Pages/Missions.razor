@@ -1,0 +1,155 @@
+@page "/missions"
+@using MoviesApp.Client.Services
+@using MoviesApp.Shared.DTOs
+@inject MissionService MissionService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using Microsoft.AspNetCore.SignalR.Client
+
+<PageTitle>Missions</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Missions Database</h1>
+                <button class="btn btn-primary" @onclick="NavigateToAdd">
+                    <i class="fas fa-plus"></i> Add New Mission
+                </button>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (missions.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Destination</th>
+                                <th>Launch Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var mission in missions)
+                            {
+                                <tr>
+                                    <td>@mission.Name</td>
+                                    <td>@mission.Destination</td>
+                                    <td>@mission.LaunchDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@mission.Status</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => NavigateToEdit(mission.Id)">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMission(mission.Id)">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <h4>No missions found</h4>
+                    <p>Get started by adding your first mission to the database.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<MissionDto> missions = new();
+    private bool isLoading = true;
+    private HubConnection? _hubConnection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMissions();
+
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl("https://localhost:7003/missionhub")
+            .WithAutomaticReconnect()
+            .Build();
+
+        _hubConnection.On<MissionDto>("MissionUpdated", (updatedMission) =>
+        {
+            var index = missions.FindIndex(m => m.Id == updatedMission.Id);
+            if (index != -1)
+            {
+                missions[index] = updatedMission;
+            }
+            StateHasChanged();
+        });
+
+        _hubConnection.On<MissionDto>("MissionCreated", (newMission) =>
+        {
+            missions.Add(newMission);
+            StateHasChanged();
+        });
+
+        _hubConnection.On<int>("MissionDeleted", (deletedId) =>
+        {
+            var mission = missions.FirstOrDefault(m => m.Id == deletedId);
+            if (mission != null)
+            {
+                missions.Remove(mission);
+                StateHasChanged();
+            }
+        });
+
+        await _hubConnection.StartAsync();
+    }
+
+    private async Task LoadMissions()
+    {
+        isLoading = true;
+        missions = await MissionService.GetMissionsAsync();
+        isLoading = false;
+    }
+
+    private void NavigateToAdd()
+    {
+        Navigation.NavigateTo("/missions/add");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        Navigation.NavigateTo($"/missions/edit/{id}");
+    }
+
+    private async Task DeleteMission(int id)
+    {
+        var mission = missions.FirstOrDefault(m => m.Id == id);
+        if (mission != null)
+        {
+            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{mission.Name}'?");
+            if (confirmed)
+            {
+                await MissionService.DeleteMissionAsync(id);
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+            await _hubConnection.DisposeAsync();
+    }
+}
