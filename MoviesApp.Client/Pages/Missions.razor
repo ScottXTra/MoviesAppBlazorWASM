@@ -168,9 +168,16 @@
         showCancelConfirm = true;
     }
 
-    private void ConfirmCancel()
+    private async Task ConfirmCancel()
     {
-        // Placeholder for cancel logic
+        if (selectedMissionId.HasValue)
+        {
+            await MissionService.DeleteMissionAsync(selectedMissionId.Value);
+            missions = missions.Where(m => m.Id != selectedMissionId.Value).ToList();
+            selectedMissionId = null;
+            selectedMissionName = null;
+        }
+
         showCancelConfirm = false;
     }
 
