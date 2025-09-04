@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using MoviesApp.Shared.DTOs;
+using System.Linq;
 
 namespace MoviesApp.Client.Services
 {
@@ -8,6 +9,27 @@ namespace MoviesApp.Client.Services
         private readonly HttpClient _httpClient;
         private const string ApiEndpoint = "api/missions";
 
+        // Mock mission data for debugging the missions screen
+        private static readonly List<MissionDto> _mockMissions = new()
+        {
+            new MissionDto
+            {
+                Id = 1,
+                Name = "Lunar Landing",
+                Destination = "Moon",
+                LaunchDate = DateTime.Now.AddDays(-7),
+                Status = "Completed"
+            },
+            new MissionDto
+            {
+                Id = 2,
+                Name = "Mars Explorer",
+                Destination = "Mars",
+                LaunchDate = DateTime.Now.AddDays(3),
+                Status = "Scheduled"
+            }
+        };
+
         public MissionService(HttpClient httpClient)
         {
             _httpClient = httpClient;
@@ -15,27 +37,16 @@ namespace MoviesApp.Client.Services
 
         public async Task<List<MissionDto>> GetMissionsAsync()
         {
-            try
-            {
-                var missions = await _httpClient.GetFromJsonAsync<List<MissionDto>>(ApiEndpoint);
-                return missions ?? new List<MissionDto>();
-            }
-            catch (Exception)
-            {
-                return new List<MissionDto>();
-            }
+            // Return mock missions instead of calling the API
+            await Task.Delay(200); // Simulate network latency
+            return _mockMissions;
         }
 
         public async Task<MissionDto?> GetMissionAsync(int id)
         {
-            try
-            {
-                return await _httpClient.GetFromJsonAsync<MissionDto>($"{ApiEndpoint}/{id}");
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            // Retrieve a single mission from the mock data set
+            await Task.Delay(100); // Simulate network latency
+            return _mockMissions.FirstOrDefault(m => m.Id == id);
         }
 
         public async Task<bool> CreateMissionAsync(CreateMissionDto mission)
