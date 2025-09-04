@@ -7,6 +7,8 @@ namespace MoviesApp.Shared.DTOs
         public string Destination { get; set; } = string.Empty;
         public DateTime LaunchDate { get; set; }
         public string? Status { get; set; }
+        public string AssignedRobot { get; set; } = string.Empty;
+        public string MissionType { get; set; } = string.Empty;
     }
 
     public class CreateMissionDto
@@ -15,6 +17,8 @@ namespace MoviesApp.Shared.DTOs
         public string Destination { get; set; } = string.Empty;
         public DateTime LaunchDate { get; set; }
         public string? Status { get; set; }
+        public string AssignedRobot { get; set; } = string.Empty;
+        public string MissionType { get; set; } = string.Empty;
     }
 
     public class UpdateMissionDto
@@ -23,5 +27,7 @@ namespace MoviesApp.Shared.DTOs
         public string Destination { get; set; } = string.Empty;
         public DateTime LaunchDate { get; set; }
         public string? Status { get; set; }
+        public string AssignedRobot { get; set; } = string.Empty;
+        public string MissionType { get; set; } = string.Empty;
     }
 }

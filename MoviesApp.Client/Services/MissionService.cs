@@ -15,18 +15,32 @@ namespace MoviesApp.Client.Services
             new MissionDto
             {
                 Id = 1,
-                Name = "Lunar Landing",
-                Destination = "Moon",
-                LaunchDate = DateTime.Now.AddDays(-7),
-                Status = "Completed"
+                Name = "FenderLH",
+                Destination = "Left Hand Fender",
+                LaunchDate = DateTime.Now.AddDays(-2),
+                Status = "Pending",
+                AssignedRobot = "Robot_1",
+                MissionType = "Delivery"
             },
             new MissionDto
             {
                 Id = 2,
-                Name = "Mars Explorer",
-                Destination = "Mars",
-                LaunchDate = DateTime.Now.AddDays(3),
-                Status = "Scheduled"
+                Name = "FenderRH",
+                Destination = "Right Hand Fender",
+                LaunchDate = DateTime.Now.AddDays(-1),
+                Status = "Pending",
+                AssignedRobot = "Robot_2",
+                MissionType = "Delivery"
+            },
+            new MissionDto
+            {
+                Id = 3,
+                Name = "Hood",
+                Destination = "Hood",
+                LaunchDate = DateTime.Now,
+                Status = "Pending",
+                AssignedRobot = "Robot_3",
+                MissionType = "Delivery"
             }
         };
 
