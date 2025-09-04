@@ -101,3 +101,81 @@ a, .btn-link {
 code {
     color: #c02d76;
 }
+
+/* Missions page styling */
+.missions-container {
+    background-color: #233748;
+    color: #d7e1e8;
+    min-height: 100vh;
+    padding: 1rem;
+    background-image: linear-gradient(#3f566e 1px, transparent 1px),
+                      linear-gradient(90deg, #3f566e 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.missions-controls {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.dispatch-section,
+.cancel-section,
+.date-filter {
+    background-color: #1d2e3b;
+    border: 1px solid #3f566e;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    color: #d7e1e8;
+}
+
+.date-filter {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.missions-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0.5rem;
+}
+
+.missions-table th,
+.missions-table td {
+    border: 1px solid #3f566e;
+    padding: 0.5rem;
+}
+
+.history-toggle {
+    margin-top: 0.5rem;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #1d2e3b;
+    border: 1px solid #3f566e;
+    padding: 1rem;
+    color: #d7e1e8;
+    text-align: center;
+    width: 320px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 1rem;
+}

@@ -2,82 +2,111 @@
 @using MoviesApp.Client.Services
 @using MoviesApp.Shared.DTOs
 @inject MissionService MissionService
-@inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @using Microsoft.AspNetCore.SignalR.Client
 
 <PageTitle>Missions</PageTitle>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1>Missions Database</h1>
-                <button class="btn btn-primary" @onclick="NavigateToAdd">
-                    <i class="fas fa-plus"></i> Add New Mission
-                </button>
-            </div>
+<div class="missions-container">
+    <div class="missions-controls">
+        <div class="dispatch-section">
+            <h5>Manually Dispatch Missions</h5>
+            <select class="form-select mb-2" @bind="selectedFleet">
+                <option value="">Select fleet</option>
+            </select>
+            <button class="btn btn-primary" @onclick="DispatchMission">Dispatch Mission</button>
+        </div>
+        <div class="cancel-section">
+            <h5>Cancel Missions</h5>
+            <select class="form-select mb-2" @bind="selectedMissionId">
+                <option value="">Select mission</option>
+                @foreach (var mission in missions)
+                {
+                    <option value="@mission.Id">@mission.Name</option>
+                }
+            </select>
+            <button class="btn btn-danger" @onclick="ShowCancelDialog" disabled="@(selectedMissionId == null)">Cancel Mission</button>
+        </div>
+        <div class="date-filter">
+            <label>From:</label>
+            <input type="date" class="form-control" @bind="fromDate" />
+            <label>To:</label>
+            <input type="date" class="form-control" @bind="toDate" />
+        </div>
+    </div>
 
+    <table class="missions-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Assigned Robot</th>
+                <th>Description</th>
+                <th>Mission Type</th>
+            </tr>
+        </thead>
+        <tbody>
             @if (isLoading)
             {
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
+                <tr><td colspan="7" class="text-center">Loading...</td></tr>
             }
             else if (missions.Any())
             {
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Name</th>
-                                <th>Destination</th>
-                                <th>Launch Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var mission in missions)
-                            {
-                                <tr>
-                                    <td>@mission.Name</td>
-                                    <td>@mission.Destination</td>
-                                    <td>@mission.LaunchDate.ToString("MMM dd, yyyy")</td>
-                                    <td>@mission.Status</td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => NavigateToEdit(mission.Id)">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMission(mission.Id)">
-                                                <i class="fas fa-trash"></i> Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                foreach (var mission in missions)
+                {
+                    <tr>
+                        <td>@mission.Id</td>
+                        <td>@mission.Name</td>
+                        <td>@mission.Status</td>
+                        <td>@mission.LaunchDate.ToString("MMM dd, yyyy")</td>
+                        <td>--</td>
+                        <td>@mission.Destination</td>
+                        <td>--</td>
+                    </tr>
+                }
             }
             else
             {
-                <div class="alert alert-info">
-                    <h4>No missions found</h4>
-                    <p>Get started by adding your first mission to the database.</p>
-                </div>
+                <tr><td colspan="7" class="text-center">No missions found</td></tr>
             }
-        </div>
+        </tbody>
+    </table>
+
+    <div class="history-toggle">
+        <input type="checkbox" id="viewHistorical" @bind="viewHistorical" />
+        <label for="viewHistorical">View historical missions</label>
     </div>
 </div>
+
+@if (showCancelConfirm)
+{
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <h4>Warning!</h4>
+            <p>Are you sure you want to cancel the following mission?</p>
+            <p>@selectedMissionName</p>
+            <div class="modal-actions">
+                <button class="btn btn-warning" @onclick="ConfirmCancel">Yes, cancel</button>
+                <button class="btn btn-secondary" @onclick="() => showCancelConfirm = false">No, don't cancel</button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private List<MissionDto> missions = new();
     private bool isLoading = true;
     private HubConnection? _hubConnection;
+
+    private string? selectedFleet;
+    private int? selectedMissionId;
+    private string? selectedMissionName;
+    private DateTime? fromDate;
+    private DateTime? toDate;
+    private bool viewHistorical;
+    private bool showCancelConfirm;
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,27 +153,22 @@
         isLoading = false;
     }
 
-    private void NavigateToAdd()
+    private void DispatchMission()
     {
-        Navigation.NavigateTo("/missions/add");
+        // Placeholder for dispatch logic
     }
 
-    private void NavigateToEdit(int id)
+    private void ShowCancelDialog()
     {
-        Navigation.NavigateTo($"/missions/edit/{id}");
+        var mission = missions.FirstOrDefault(m => m.Id == selectedMissionId);
+        selectedMissionName = mission?.Name;
+        showCancelConfirm = true;
     }
 
-    private async Task DeleteMission(int id)
+    private void ConfirmCancel()
     {
-        var mission = missions.FirstOrDefault(m => m.Id == id);
-        if (mission != null)
-        {
-            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{mission.Name}'?");
-            if (confirmed)
-            {
-                await MissionService.DeleteMissionAsync(id);
-            }
-        }
+        // Placeholder for cancel logic
+        showCancelConfirm = false;
     }
 
     public async ValueTask DisposeAsync()
